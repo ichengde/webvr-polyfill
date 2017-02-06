@@ -15,7 +15,7 @@
 
 var objectAssign = require('object-assign');
 
-var Util = window.Util || {};
+var Util = window.top.Util || {};
 
 Util.MIN_TIMESTEP = 0.001;
 Util.MAX_TIMESTEP = 1;

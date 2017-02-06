@@ -94,7 +94,7 @@ VRDisplay.prototype.cancelAnimationFrame = function(id) {
 
 VRDisplay.prototype.wrapForFullscreen = function(element) {
   // Don't wrap in iOS.
-  if (Util.isIOS()) {
+  if (Util.isIOS() || Util.isWechat()|| Util.isTBS()) {
     return element;
   }
   if (!this.fullscreenWrapper_) {
@@ -178,6 +178,7 @@ VRDisplay.prototype.requestPresent = function(layers) {
   var wasPresenting = this.isPresenting;
   var self = this;
 
+
   if (!(layers instanceof Array)) {
     if (!hasShowDeprecationWarning) {
       console.warn("Using a deprecated form of requestPresent. Should pass in an array of VRLayers.");
@@ -203,6 +204,7 @@ VRDisplay.prototype.requestPresent = function(layers) {
       todo: figure out the correct behavior if the source is not provided.
       see https://github.com/w3c/webvr/issues/58
       */
+      Util.debug('source is not provided');
       resolve();
       return;
     }
@@ -228,6 +230,7 @@ VRDisplay.prototype.requestPresent = function(layers) {
       resolve();
       return;
     }
+    Util.debug(layer);
 
     // Was not already presenting.
     self.layer_ = {
@@ -237,14 +240,17 @@ VRDisplay.prototype.requestPresent = function(layers) {
       rightBounds: rightBounds.slice(0)
     };
 
+      Util.debug(self.layer_);
     self.waitingForPresent_ = false;
     if (self.layer_ && self.layer_.source) {
       var fullscreenElement = self.wrapForFullscreen(self.layer_.source);
+      Util.debug('Get fullscreenElement');
 
       function onFullscreenChange() {
         var actualFullscreenElement = Util.getFullscreenElement();
 
         self.isPresenting = (fullscreenElement === actualFullscreenElement);
+        Util.debug('self.isPresenting'+String(self.isPresenting));
         if (self.isPresenting) {
           if (screen.orientation && screen.orientation.lock) {
             screen.orientation.lock('landscape-primary').catch(function(error){
@@ -252,6 +258,8 @@ VRDisplay.prototype.requestPresent = function(layers) {
             });
           }
           self.waitingForPresent_ = false;
+          Util.debug('beginPresent_');
+          
           self.beginPresent_();
           resolve();
         } else {
@@ -282,14 +290,28 @@ VRDisplay.prototype.requestPresent = function(layers) {
 
       self.addFullscreenListeners_(fullscreenElement,
           onFullscreenChange, onFullscreenError);
+      Util.debug('addEvent:onFullscreenChange success');
 
-      if (Util.requestFullscreen(fullscreenElement)) {
-        self.wakelock_.request();
-        self.waitingForPresent_ = true;
-      } else if (Util.isIOS()) {
+      if (Util.isIOS() || Util.isWechat() || Util.isTBS()) {
         // *sigh* Just fake it.
         self.wakelock_.request();
         self.isPresenting = true;
+
+        self.beginPresent_();
+        self.fireVRDisplayPresentChange_();
+        resolve();
+      }
+      
+      if (Util.requestFullscreen(fullscreenElement)) {
+        Util.debug('re requestFullscreen');
+
+        self.wakelock_.request();
+        self.waitingForPresent_ = true;
+      } else if (Util.isIOS() || Util.isWechat() || Util.isTBS()) {
+        // *sigh* Just fake it.
+        self.wakelock_.request();
+        self.isPresenting = true;
+
         self.beginPresent_();
         self.fireVRDisplayPresentChange_();
         resolve();
