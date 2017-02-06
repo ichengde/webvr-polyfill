@@ -312,8 +312,15 @@ if ('undefined' !== typeof module) {
 }
 
 },{}],2:[function(_dereq_,module,exports){
+/*
+object-assign
+(c) Sindre Sorhus
+@license MIT
+*/
+
 'use strict';
 /* eslint-disable no-unused-vars */
+var getOwnPropertySymbols = Object.getOwnPropertySymbols;
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 var propIsEnumerable = Object.prototype.propertyIsEnumerable;
 
@@ -334,7 +341,7 @@ function shouldUseNative() {
 		// Detect buggy property enumeration order in older V8 versions.
 
 		// https://bugs.chromium.org/p/v8/issues/detail?id=4118
-		var test1 = new String('abc');  // eslint-disable-line
+		var test1 = new String('abc');  // eslint-disable-line no-new-wrappers
 		test1[5] = 'de';
 		if (Object.getOwnPropertyNames(test1)[0] === '5') {
 			return false;
@@ -363,7 +370,7 @@ function shouldUseNative() {
 		}
 
 		return true;
-	} catch (e) {
+	} catch (err) {
 		// We don't expect any of the above to throw, but better to be safe.
 		return false;
 	}
@@ -383,8 +390,8 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 			}
 		}
 
-		if (Object.getOwnPropertySymbols) {
-			symbols = Object.getOwnPropertySymbols(from);
+		if (getOwnPropertySymbols) {
+			symbols = getOwnPropertySymbols(from);
 			for (var i = 0; i < symbols.length; i++) {
 				if (propIsEnumerable.call(from, symbols[i])) {
 					to[symbols[i]] = from[symbols[i]];
@@ -493,7 +500,7 @@ VRDisplay.prototype.cancelAnimationFrame = function(id) {
 
 VRDisplay.prototype.wrapForFullscreen = function(element) {
   // Don't wrap in iOS.
-  if (Util.isIOS()) {
+  if (Util.isIOS() || Util.isWechat()|| Util.isTBS()) {
     return element;
   }
   if (!this.fullscreenWrapper_) {
@@ -577,6 +584,7 @@ VRDisplay.prototype.requestPresent = function(layers) {
   var wasPresenting = this.isPresenting;
   var self = this;
 
+
   if (!(layers instanceof Array)) {
     if (!hasShowDeprecationWarning) {
       console.warn("Using a deprecated form of requestPresent. Should pass in an array of VRLayers.");
@@ -602,6 +610,7 @@ VRDisplay.prototype.requestPresent = function(layers) {
       todo: figure out the correct behavior if the source is not provided.
       see https://github.com/w3c/webvr/issues/58
       */
+      Util.debug('source is not provided');
       resolve();
       return;
     }
@@ -627,6 +636,7 @@ VRDisplay.prototype.requestPresent = function(layers) {
       resolve();
       return;
     }
+    Util.debug(layer);
 
     // Was not already presenting.
     self.layer_ = {
@@ -636,14 +646,17 @@ VRDisplay.prototype.requestPresent = function(layers) {
       rightBounds: rightBounds.slice(0)
     };
 
+      Util.debug(self.layer_);
     self.waitingForPresent_ = false;
     if (self.layer_ && self.layer_.source) {
       var fullscreenElement = self.wrapForFullscreen(self.layer_.source);
+      Util.debug('Get fullscreenElement');
 
       function onFullscreenChange() {
         var actualFullscreenElement = Util.getFullscreenElement();
 
         self.isPresenting = (fullscreenElement === actualFullscreenElement);
+        Util.debug('self.isPresenting'+String(self.isPresenting));
         if (self.isPresenting) {
           if (screen.orientation && screen.orientation.lock) {
             screen.orientation.lock('landscape-primary').catch(function(error){
@@ -651,6 +664,8 @@ VRDisplay.prototype.requestPresent = function(layers) {
             });
           }
           self.waitingForPresent_ = false;
+          Util.debug('beginPresent_');
+          
           self.beginPresent_();
           resolve();
         } else {
@@ -681,14 +696,28 @@ VRDisplay.prototype.requestPresent = function(layers) {
 
       self.addFullscreenListeners_(fullscreenElement,
           onFullscreenChange, onFullscreenError);
+      Util.debug('addEvent:onFullscreenChange success');
 
-      if (Util.requestFullscreen(fullscreenElement)) {
-        self.wakelock_.request();
-        self.waitingForPresent_ = true;
-      } else if (Util.isIOS()) {
+      if (Util.isIOS() || Util.isWechat() || Util.isTBS()) {
         // *sigh* Just fake it.
         self.wakelock_.request();
         self.isPresenting = true;
+
+        self.beginPresent_();
+        self.fireVRDisplayPresentChange_();
+        resolve();
+      }
+      
+      if (Util.requestFullscreen(fullscreenElement)) {
+        Util.debug('re requestFullscreen');
+
+        self.wakelock_.request();
+        self.waitingForPresent_ = true;
+      } else if (Util.isIOS() || Util.isWechat() || Util.isTBS()) {
+        // *sigh* Just fake it.
+        self.wakelock_.request();
+        self.isPresenting = true;
+
         self.beginPresent_();
         self.fireVRDisplayPresentChange_();
         resolve();
@@ -2919,6 +2948,17 @@ var DPDB_CACHE = {
   {
     "type": "android",
     "rules": [
+      { "mdmh": "Google//Pixel XL/" },
+      { "ua": "Pixel XL" }
+    ],
+    "dpi": [537.9, 533],
+    "bw": 3,
+    "ac": 1000
+  },
+
+  {
+    "type": "android",
+    "rules": [
       { "mdmh": "HTC/*/HTC6435LVW/*" },
       { "ua": "HTC6435LVW" }
     ],
@@ -3276,6 +3316,17 @@ var DPDB_CACHE = {
     ],
     "dpi": [ 422.0, 423.4 ],
     "bw": 3,
+    "ac": 1000
+  },
+
+  {
+    "type": "android",
+    "rules": [
+      { "mdmh": "motorola/*/G4/*" },
+      { "ua": "Moto G (4)" }
+    ],
+    "dpi": 401.0,
+    "bw": 4,
     "ac": 1000
   },
 
@@ -3689,6 +3740,17 @@ var DPDB_CACHE = {
   {
     "type": "android",
     "rules": [
+      { "mdmh": "samsung/*/SM-G935F/*" },
+      { "ua": "SM-G935F" }
+    ],
+    "dpi": 534,
+    "bw": 3,
+    "ac": 500
+  },
+
+  {
+    "type": "android",
+    "rules": [
       { "mdmh": "Sony/*/C6903/*" },
       { "ua": "C6903" }
     ],
@@ -3784,33 +3846,9 @@ var DPDB_CACHE = {
 
   {
     "type": "ios",
-    "rules": [ { "res": [ 640, 960 ] } ],
-    "dpi": [ 325.1, 328.4 ],
-    "bw": 4,
-    "ac": 1000
-  },
-
-  {
-    "type": "ios",
     "rules": [ { "res": [ 640, 1136 ] } ],
     "dpi": [ 317.1, 320.2 ],
     "bw": 3,
-    "ac": 1000
-  },
-
-  {
-    "type": "ios",
-    "rules": [ { "res": [ 640, 1136 ] } ],
-    "dpi": [ 317.1, 320.2 ],
-    "bw": 3,
-    "ac": 1000
-  },
-
-  {
-    "type": "ios",
-    "rules": [ { "res": [ 750, 1334 ] } ],
-    "dpi": 326.4,
-    "bw": 4,
     "ac": 1000
   },
 
@@ -3832,8 +3870,8 @@ var DPDB_CACHE = {
 
   {
     "type": "ios",
-    "rules": [ { "res": [ 1242, 2208 ] } ],
-    "dpi": [ 453.6, 458.4 ],
+    "rules": [ { "res": [ 1125, 2001 ] } ],
+    "dpi": [ 410.9, 415.4 ],
     "bw": 4,
     "ac": 1000
   }
@@ -5382,7 +5420,7 @@ module.exports = TouchPanner;
 
 var objectAssign = _dereq_('object-assign');
 
-var Util = window.Util || {};
+var Util = window.top.Util || {};
 
 Util.MIN_TIMESTEP = 0.001;
 Util.MAX_TIMESTEP = 1;
