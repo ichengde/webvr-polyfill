@@ -230,7 +230,6 @@ VRDisplay.prototype.requestPresent = function(layers) {
       resolve();
       return;
     }
-    Util.debug(layer);
 
     // Was not already presenting.
     self.layer_ = {
@@ -240,7 +239,7 @@ VRDisplay.prototype.requestPresent = function(layers) {
       rightBounds: rightBounds.slice(0)
     };
 
-      Util.debug(self.layer_);
+    Util.debug(self.layer_);
     self.waitingForPresent_ = false;
     if (self.layer_ && self.layer_.source) {
       var fullscreenElement = self.wrapForFullscreen(self.layer_.source);
@@ -250,7 +249,6 @@ VRDisplay.prototype.requestPresent = function(layers) {
         var actualFullscreenElement = Util.getFullscreenElement();
 
         self.isPresenting = (fullscreenElement === actualFullscreenElement);
-        Util.debug('self.isPresenting'+String(self.isPresenting));
         if (self.isPresenting) {
           if (screen.orientation && screen.orientation.lock) {
             screen.orientation.lock('landscape-primary').catch(function(error){
@@ -258,7 +256,6 @@ VRDisplay.prototype.requestPresent = function(layers) {
             });
           }
           self.waitingForPresent_ = false;
-          Util.debug('beginPresent_');
           
           self.beginPresent_();
           resolve();
@@ -292,7 +289,7 @@ VRDisplay.prototype.requestPresent = function(layers) {
           onFullscreenChange, onFullscreenError);
       Util.debug('addEvent:onFullscreenChange success');
 
-      if (Util.isIOS() || Util.isWechat() || Util.isTBS()) {
+      if (Util.isWechat() || Util.isTBS()) {
         // *sigh* Just fake it.
         self.wakelock_.request();
         self.isPresenting = true;
@@ -300,21 +297,20 @@ VRDisplay.prototype.requestPresent = function(layers) {
         self.beginPresent_();
         self.fireVRDisplayPresentChange_();
         resolve();
-      }
-      
-      if (Util.requestFullscreen(fullscreenElement)) {
-        Util.debug('re requestFullscreen');
+      } else {
+        if (Util.requestFullscreen(fullscreenElement)) {
 
-        self.wakelock_.request();
-        self.waitingForPresent_ = true;
-      } else if (Util.isIOS() || Util.isWechat() || Util.isTBS()) {
-        // *sigh* Just fake it.
-        self.wakelock_.request();
-        self.isPresenting = true;
+          self.wakelock_.request();
+          self.waitingForPresent_ = true;
+        } else if (Util.isIOS() ) {
+          // *sigh* Just fake it.
+          self.wakelock_.request();
+          self.isPresenting = true;
 
-        self.beginPresent_();
-        self.fireVRDisplayPresentChange_();
-        resolve();
+          self.beginPresent_();
+          self.fireVRDisplayPresentChange_();
+          resolve();
+        }
       }
     }
 
@@ -334,7 +330,8 @@ VRDisplay.prototype.exitPresent = function() {
 
   return new Promise(function(resolve, reject) {
     if (wasPresenting) {
-      if (!Util.exitFullscreen() && Util.isIOS()) {
+
+      if ((!Util.exitFullscreen() && Util.isIOS()) || Util.isWechat || Util.isTBS) {
         self.endPresent_();
         self.fireVRDisplayPresentChange_();
       }

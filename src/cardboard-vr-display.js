@@ -161,7 +161,7 @@ CardboardVRDisplay.prototype.beginPresent_ = function() {
     if (Util.isLandscapeMode() && Util.isMobile()) {
       // In landscape mode, temporarily show the "put into Cardboard"
       // interstitial. Otherwise, do the default thing.
-      this.rotateInstructions_.showTemporarily(3000, this.layer_.source.parentElement);
+      this.rotateInstructions_.showTemporarily(1500, this.layer_.source.parentElement);
     } else {
       this.rotateInstructions_.update();
     }
@@ -236,6 +236,7 @@ CardboardVRDisplay.prototype.onResize_ = function(e) {
     // hide the URL bar unless content is bigger than the screen.
     // This will not be visible as long as the container element (e.g. body)
     // is set to 'overflow: hidden'.
+    
     var cssProperties = [
       'position: absolute',
       'top: 0',

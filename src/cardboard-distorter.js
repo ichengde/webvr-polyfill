@@ -491,7 +491,7 @@ CardboardDistorter.prototype.submitFrame = function() {
   // width and height correctly. After each submit frame check to see what the
   // real backbuffer size has been set to and resize the fake backbuffer size
   // to match.
-  if (Util.isIOS()) {
+  if (Util.isIOS() && Util.isWechat()) {
     var canvas = gl.canvas;
     if (canvas.width != self.bufferWidth || canvas.height != self.bufferHeight) {
       self.bufferWidth = canvas.width;
