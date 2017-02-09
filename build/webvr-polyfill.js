@@ -466,7 +466,7 @@ module.exports.VRDevice = VRDevice;
 module.exports.HMDVRDevice = HMDVRDevice;
 module.exports.PositionSensorVRDevice = PositionSensorVRDevice;
 
-},{"./util.js":20,"./wakelock.js":22}],2:[function(_dereq_,module,exports){
+},{"./util.js":19,"./wakelock.js":21}],2:[function(_dereq_,module,exports){
 /*
  * Copyright 2016 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1116,7 +1116,7 @@ CardboardDistorter.prototype.getOwnPropertyDescriptor_ = function(proto, attrNam
 
 module.exports = CardboardDistorter;
 
-},{"./cardboard-ui.js":3,"./deps/wglu-preserve-state.js":5,"./util.js":20}],3:[function(_dereq_,module,exports){
+},{"./cardboard-ui.js":3,"./deps/wglu-preserve-state.js":5,"./util.js":19}],3:[function(_dereq_,module,exports){
 /*
  * Copyright 2016 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1404,7 +1404,7 @@ CardboardUI.prototype.renderNoState = function() {
 
 module.exports = CardboardUI;
 
-},{"./deps/wglu-preserve-state.js":5,"./util.js":20}],4:[function(_dereq_,module,exports){
+},{"./deps/wglu-preserve-state.js":5,"./util.js":19}],4:[function(_dereq_,module,exports){
 /*
  * Copyright 2016 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1685,7 +1685,7 @@ CardboardVRDisplay.prototype.fireVRDisplayDeviceParamsChange_ = function() {
 
 module.exports = CardboardVRDisplay;
 
-},{"./base.js":1,"./cardboard-distorter.js":2,"./cardboard-ui.js":3,"./device-info.js":6,"./dpdb/dpdb.js":10,"./rotate-instructions.js":14,"./sensor-fusion/fusion-pose-sensor.js":16,"./util.js":20,"./viewer-selector.js":21}],5:[function(_dereq_,module,exports){
+},{"./base.js":1,"./cardboard-distorter.js":2,"./cardboard-ui.js":3,"./device-info.js":6,"./dpdb/dpdb.js":10,"./rotate-instructions.js":13,"./sensor-fusion/fusion-pose-sensor.js":15,"./util.js":19,"./viewer-selector.js":20}],5:[function(_dereq_,module,exports){
 /*
 Copyright (c) 2016, Brandon Jones.
 
@@ -2217,7 +2217,7 @@ function CardboardViewer(params) {
 DeviceInfo.Viewers = Viewers;
 module.exports = DeviceInfo;
 
-},{"./distortion/distortion.js":8,"./math-util.js":12,"./util.js":20}],7:[function(_dereq_,module,exports){
+},{"./distortion/distortion.js":8,"./math-util.js":11,"./util.js":19}],7:[function(_dereq_,module,exports){
 /*
  * Copyright 2016 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -3644,89 +3644,7 @@ function DeviceParams(params) {
 
 module.exports = Dpdb;
 
-},{"../util.js":20,"./dpdb-cache.js":9}],11:[function(_dereq_,module,exports){
-/*
- * Copyright 2015 Google Inc. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-var Util = _dereq_('./util.js');
-var WebVRPolyfill = _dereq_('./webvr-polyfill.js').WebVRPolyfill;
-
-// Initialize a WebVRConfig just in case.
-window.WebVRConfig = Util.extend({
-  // Forces availability of VR mode, even for non-mobile devices.
-  FORCE_ENABLE_VR: false,
-
-  // Complementary filter coefficient. 0 for accelerometer, 1 for gyro.
-  K_FILTER: 0.98,
-
-  // How far into the future to predict during fast motion (in seconds).
-  PREDICTION_TIME_S: 0.040,
-
-  // Flag to enable touch panner. In case you have your own touch controls.
-  TOUCH_PANNER_DISABLED: true,
-
-  // Flag to disabled the UI in VR Mode.
-  CARDBOARD_UI_DISABLED: false, // Default: false
-
-  // Flag to disable the instructions to rotate your device.
-  ROTATE_INSTRUCTIONS_DISABLED: false, // Default: false.
-
-  // Enable yaw panning only, disabling roll and pitch. This can be useful
-  // for panoramas with nothing interesting above or below.
-  YAW_ONLY: false,
-
-  // To disable keyboard and mouse controls, if you want to use your own
-  // implementation.
-  MOUSE_KEYBOARD_CONTROLS_DISABLED: false,
-
-  // Prevent the polyfill from initializing immediately. Requires the app
-  // to call InitializeWebVRPolyfill() before it can be used.
-  DEFER_INITIALIZATION: false,
-
-  // Enable the deprecated version of the API (navigator.getVRDevices).
-  ENABLE_DEPRECATED_API: false,
-
-  // Scales the recommended buffer size reported by WebVR, which can improve
-  // performance.
-  // UPDATE(2016-05-03): Setting this to 0.5 by default since 1.0 does not
-  // perform well on many mobile devices.
-  BUFFER_SCALE: 0.5,
-
-  // Allow VRDisplay.submitFrame to change gl bindings, which is more
-  // efficient if the application code will re-bind its resources on the
-  // next frame anyway. This has been seen to cause rendering glitches with
-  // THREE.js.
-  // Dirty bindings include: gl.FRAMEBUFFER_BINDING, gl.CURRENT_PROGRAM,
-  // gl.ARRAY_BUFFER_BINDING, gl.ELEMENT_ARRAY_BUFFER_BINDING,
-  // and gl.TEXTURE_BINDING_2D for texture unit 0.
-  DIRTY_SUBMIT_FRAME_BINDINGS: false,
-
-  // When set to true, this will cause a polyfilled VRDisplay to always be
-  // appended to the list returned by navigator.getVRDisplays(), even if that
-  // list includes a native VRDisplay.
-  ALWAYS_APPEND_POLYFILL_DISPLAY: false
-}, window.WebVRConfig);
-
-if (!window.WebVRConfig.DEFER_INITIALIZATION) {
-  new WebVRPolyfill();
-} else {
-  window.InitializeWebVRPolyfill = function() {
-    new WebVRPolyfill();
-  }
-}
-
-},{"./util.js":20,"./webvr-polyfill.js":23}],12:[function(_dereq_,module,exports){
+},{"../util.js":19,"./dpdb-cache.js":9}],11:[function(_dereq_,module,exports){
 /*
  * Copyright 2016 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -4085,7 +4003,7 @@ MathUtil.Quaternion.prototype = {
 
 module.exports = MathUtil;
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 /*
  * Copyright 2016 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -4118,153 +4036,159 @@ var MOUSE_SPEED_Y = 0.3;
  * where orientation events aren't supported. Cannot present.
  */
 function MouseKeyboardVRDisplay() {
-  this.displayName = 'Mouse and Keyboard VRDisplay (webvr-polyfill)';
+    this.displayName = 'Mouse and Keyboard VRDisplay (webvr-polyfill)';
 
-  this.capabilities.hasOrientation = true;
+    this.capabilities.hasOrientation = true;
 
-  // Attach to mouse and keyboard events.
-  window.addEventListener('keydown', this.onKeyDown_.bind(this));
-  window.addEventListener('mousemove', this.onMouseMove_.bind(this));
-  window.addEventListener('mousedown', this.onMouseDown_.bind(this));
-  window.addEventListener('mouseup', this.onMouseUp_.bind(this));
+    // Attach to mouse and keyboard events.
+    if (!window.renderParam) {
+        window.addEventListener('keydown', this.onKeyDown_.bind(this));
+        window.addEventListener('mousemove', this.onMouseMove_.bind(this));
+        window.addEventListener('mousedown', this.onMouseDown_.bind(this));
+        window.addEventListener('mouseup', this.onMouseUp_.bind(this));
+    } else {
+        document.querySelector('#' + renderParam.dom).addEventListener('keydown', this.onKeyDown_.bind(this));
+        document.querySelector('#' + renderParam.dom).addEventListener('mousemove', this.onMouseMove_.bind(this));
+        document.querySelector('#' + renderParam.dom).addEventListener('mousedown', this.onMouseDown_.bind(this));
+        document.querySelector('#' + renderParam.dom).addEventListener('mouseup', this.onMouseUp_.bind(this));
+    }
+    // "Private" members.
+    this.phi_ = 0;
+    this.theta_ = 0;
 
-  // "Private" members.
-  this.phi_ = 0;
-  this.theta_ = 0;
+    // Variables for keyboard-based rotation animation.
+    this.targetAngle_ = null;
+    this.angleAnimation_ = null;
 
-  // Variables for keyboard-based rotation animation.
-  this.targetAngle_ = null;
-  this.angleAnimation_ = null;
+    // State variables for calculations.
+    this.orientation_ = new MathUtil.Quaternion();
 
-  // State variables for calculations.
-  this.orientation_ = new MathUtil.Quaternion();
+    // Variables for mouse-based rotation.
+    this.rotateStart_ = new MathUtil.Vector2();
+    this.rotateEnd_ = new MathUtil.Vector2();
+    this.rotateDelta_ = new MathUtil.Vector2();
+    this.isDragging_ = false;
 
-  // Variables for mouse-based rotation.
-  this.rotateStart_ = new MathUtil.Vector2();
-  this.rotateEnd_ = new MathUtil.Vector2();
-  this.rotateDelta_ = new MathUtil.Vector2();
-  this.isDragging_ = false;
-
-  this.orientationOut_ = new Float32Array(4);
+    this.orientationOut_ = new Float32Array(4);
 }
 MouseKeyboardVRDisplay.prototype = new VRDisplay();
 
-MouseKeyboardVRDisplay.prototype.getImmediatePose = function() {
-  this.orientation_.setFromEulerYXZ(this.phi_, this.theta_, 0);
+MouseKeyboardVRDisplay.prototype.getImmediatePose = function () {
+    this.orientation_.setFromEulerYXZ(this.phi_, this.theta_, 0);
 
-  this.orientationOut_[0] = this.orientation_.x;
-  this.orientationOut_[1] = this.orientation_.y;
-  this.orientationOut_[2] = this.orientation_.z;
-  this.orientationOut_[3] = this.orientation_.w;
+    this.orientationOut_[0] = this.orientation_.x;
+    this.orientationOut_[1] = this.orientation_.y;
+    this.orientationOut_[2] = this.orientation_.z;
+    this.orientationOut_[3] = this.orientation_.w;
 
-  return {
-    position: null,
-    orientation: this.orientationOut_,
-    linearVelocity: null,
-    linearAcceleration: null,
-    angularVelocity: null,
-    angularAcceleration: null
-  };
+    return {
+        position: null,
+        orientation: this.orientationOut_,
+        linearVelocity: null,
+        linearAcceleration: null,
+        angularVelocity: null,
+        angularAcceleration: null
+    };
 };
 
-MouseKeyboardVRDisplay.prototype.onKeyDown_ = function(e) {
-  // Track WASD and arrow keys.
-  if (e.keyCode == 38) { // Up key.
-    this.animatePhi_(this.phi_ + KEY_SPEED);
-  } else if (e.keyCode == 39) { // Right key.
-    this.animateTheta_(this.theta_ - KEY_SPEED);
-  } else if (e.keyCode == 40) { // Down key.
-    this.animatePhi_(this.phi_ - KEY_SPEED);
-  } else if (e.keyCode == 37) { // Left key.
-    this.animateTheta_(this.theta_ + KEY_SPEED);
-  }
+MouseKeyboardVRDisplay.prototype.onKeyDown_ = function (e) {
+    // Track WASD and arrow keys.
+    if (e.keyCode == 38) { // Up key.
+        this.animatePhi_(this.phi_ + KEY_SPEED);
+    } else if (e.keyCode == 39) { // Right key.
+        this.animateTheta_(this.theta_ - KEY_SPEED);
+    } else if (e.keyCode == 40) { // Down key.
+        this.animatePhi_(this.phi_ - KEY_SPEED);
+    } else if (e.keyCode == 37) { // Left key.
+        this.animateTheta_(this.theta_ + KEY_SPEED);
+    }
 };
 
-MouseKeyboardVRDisplay.prototype.animateTheta_ = function(targetAngle) {
-  this.animateKeyTransitions_('theta_', targetAngle);
+MouseKeyboardVRDisplay.prototype.animateTheta_ = function (targetAngle) {
+    this.animateKeyTransitions_('theta_', targetAngle);
 };
 
-MouseKeyboardVRDisplay.prototype.animatePhi_ = function(targetAngle) {
-  // Prevent looking too far up or down.
-  targetAngle = Util.clamp(targetAngle, -Math.PI/2, Math.PI/2);
-  this.animateKeyTransitions_('phi_', targetAngle);
+MouseKeyboardVRDisplay.prototype.animatePhi_ = function (targetAngle) {
+    // Prevent looking too far up or down.
+    targetAngle = Util.clamp(targetAngle, -Math.PI / 2, Math.PI / 2);
+    this.animateKeyTransitions_('phi_', targetAngle);
 };
 
 /**
  * Start an animation to transition an angle from one value to another.
  */
-MouseKeyboardVRDisplay.prototype.animateKeyTransitions_ = function(angleName, targetAngle) {
-  // If an animation is currently running, cancel it.
-  if (this.angleAnimation_) {
-    cancelAnimationFrame(this.angleAnimation_);
-  }
-  var startAngle = this[angleName];
-  var startTime = new Date();
-  // Set up an interval timer to perform the animation.
-  this.angleAnimation_ = requestAnimationFrame(function animate() {
-    // Once we're finished the animation, we're done.
-    var elapsed = new Date() - startTime;
-    if (elapsed >= KEY_ANIMATION_DURATION) {
-      this[angleName] = targetAngle;
-      cancelAnimationFrame(this.angleAnimation_);
-      return;
+MouseKeyboardVRDisplay.prototype.animateKeyTransitions_ = function (angleName, targetAngle) {
+    // If an animation is currently running, cancel it.
+    if (this.angleAnimation_) {
+        cancelAnimationFrame(this.angleAnimation_);
     }
-    // loop with requestAnimationFrame
-    this.angleAnimation_ = requestAnimationFrame(animate.bind(this))
-    // Linearly interpolate the angle some amount.
-    var percent = elapsed / KEY_ANIMATION_DURATION;
-    this[angleName] = startAngle + (targetAngle - startAngle) * percent;
-  }.bind(this));
+    var startAngle = this[angleName];
+    var startTime = new Date();
+    // Set up an interval timer to perform the animation.
+    this.angleAnimation_ = requestAnimationFrame(function animate() {
+        // Once we're finished the animation, we're done.
+        var elapsed = new Date() - startTime;
+        if (elapsed >= KEY_ANIMATION_DURATION) {
+            this[angleName] = targetAngle;
+            cancelAnimationFrame(this.angleAnimation_);
+            return;
+        }
+        // loop with requestAnimationFrame
+        this.angleAnimation_ = requestAnimationFrame(animate.bind(this))
+            // Linearly interpolate the angle some amount.
+        var percent = elapsed / KEY_ANIMATION_DURATION;
+        this[angleName] = startAngle + (targetAngle - startAngle) * percent;
+    }.bind(this));
 };
 
-MouseKeyboardVRDisplay.prototype.onMouseDown_ = function(e) {
-  this.rotateStart_.set(e.clientX, e.clientY);
-  this.isDragging_ = true;
+MouseKeyboardVRDisplay.prototype.onMouseDown_ = function (e) {
+    this.rotateStart_.set(e.clientX, e.clientY);
+    this.isDragging_ = true;
 };
 
 // Very similar to https://gist.github.com/mrflix/8351020
-MouseKeyboardVRDisplay.prototype.onMouseMove_ = function(e) {
-  if (!this.isDragging_ && !this.isPointerLocked_()) {
-    return;
-  }
-  // Support pointer lock API.
-  if (this.isPointerLocked_()) {
-    var movementX = e.movementX || e.mozMovementX || 0;
-    var movementY = e.movementY || e.mozMovementY || 0;
-    this.rotateEnd_.set(this.rotateStart_.x - movementX, this.rotateStart_.y - movementY);
-  } else {
-    this.rotateEnd_.set(e.clientX, e.clientY);
-  }
-  // Calculate how much we moved in mouse space.
-  this.rotateDelta_.subVectors(this.rotateEnd_, this.rotateStart_);
-  this.rotateStart_.copy(this.rotateEnd_);
+MouseKeyboardVRDisplay.prototype.onMouseMove_ = function (e) {
+    if (!this.isDragging_ && !this.isPointerLocked_()) {
+        return;
+    }
+    // Support pointer lock API.
+    if (this.isPointerLocked_()) {
+        var movementX = e.movementX || e.mozMovementX || 0;
+        var movementY = e.movementY || e.mozMovementY || 0;
+        this.rotateEnd_.set(this.rotateStart_.x - movementX, this.rotateStart_.y - movementY);
+    } else {
+        this.rotateEnd_.set(e.clientX, e.clientY);
+    }
+    // Calculate how much we moved in mouse space.
+    this.rotateDelta_.subVectors(this.rotateEnd_, this.rotateStart_);
+    this.rotateStart_.copy(this.rotateEnd_);
 
-  // Keep track of the cumulative euler angles.
-  this.phi_ += 2 * Math.PI * this.rotateDelta_.y / screen.height * MOUSE_SPEED_Y;
-  this.theta_ += 2 * Math.PI * this.rotateDelta_.x / screen.width * MOUSE_SPEED_X;
+    // Keep track of the cumulative euler angles.
+    this.phi_ += 2 * Math.PI * this.rotateDelta_.y / screen.height * MOUSE_SPEED_Y;
+    this.theta_ += 2 * Math.PI * this.rotateDelta_.x / screen.width * MOUSE_SPEED_X;
 
-  // Prevent looking too far up or down.
-  this.phi_ = Util.clamp(this.phi_, -Math.PI/2, Math.PI/2);
+    // Prevent looking too far up or down.
+    this.phi_ = Util.clamp(this.phi_, -Math.PI / 2, Math.PI / 2);
 };
 
-MouseKeyboardVRDisplay.prototype.onMouseUp_ = function(e) {
-  this.isDragging_ = false;
+MouseKeyboardVRDisplay.prototype.onMouseUp_ = function (e) {
+    this.isDragging_ = false;
 };
 
-MouseKeyboardVRDisplay.prototype.isPointerLocked_ = function() {
-  var el = document.pointerLockElement || document.mozPointerLockElement ||
-      document.webkitPointerLockElement;
-  return el !== undefined;
+MouseKeyboardVRDisplay.prototype.isPointerLocked_ = function () {
+    var el = document.pointerLockElement || document.mozPointerLockElement ||
+        document.webkitPointerLockElement;
+    return el !== undefined;
 };
 
-MouseKeyboardVRDisplay.prototype.resetPose = function() {
-  this.phi_ = 0;
-  this.theta_ = 0;
+MouseKeyboardVRDisplay.prototype.resetPose = function () {
+    this.phi_ = 0;
+    this.theta_ = 0;
 };
 
 module.exports = MouseKeyboardVRDisplay;
 
-},{"./base.js":1,"./math-util.js":12,"./util.js":20}],14:[function(_dereq_,module,exports){
+},{"./base.js":1,"./math-util.js":11,"./util.js":19}],13:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -4376,7 +4300,7 @@ RotateInstructions.prototype.loadIcon_ = function () {
 
 module.exports = RotateInstructions;
 
-},{"./util.js":20}],15:[function(_dereq_,module,exports){
+},{"./util.js":19}],14:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -4544,7 +4468,7 @@ ComplementaryFilter.prototype.gyroToQuaternionDelta_ = function(gyro, dt) {
 
 module.exports = ComplementaryFilter;
 
-},{"../math-util.js":12,"../util.js":20,"./sensor-sample.js":18}],16:[function(_dereq_,module,exports){
+},{"../math-util.js":11,"../util.js":19,"./sensor-sample.js":17}],15:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -4775,7 +4699,7 @@ FusionPoseSensor.prototype.stop = function() {
 
 module.exports = FusionPoseSensor;
 
-},{"../math-util.js":12,"../touch-panner.js":19,"../util.js":20,"./complementary-filter.js":15,"./pose-predictor.js":17}],17:[function(_dereq_,module,exports){
+},{"../math-util.js":11,"../touch-panner.js":18,"../util.js":19,"./complementary-filter.js":14,"./pose-predictor.js":16}],16:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -4858,7 +4782,7 @@ PosePredictor.prototype.getPrediction = function(currentQ, gyro, timestampS) {
 
 module.exports = PosePredictor;
 
-},{"../math-util":12,"../util":20}],18:[function(_dereq_,module,exports){
+},{"../math-util":11,"../util":19}],17:[function(_dereq_,module,exports){
 function SensorSample(sample, timestampS) {
   this.set(sample, timestampS);
 };
@@ -4874,7 +4798,7 @@ SensorSample.prototype.copy = function(sensorSample) {
 
 module.exports = SensorSample;
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -4898,61 +4822,68 @@ var ROTATE_SPEED = 0.5;
  * transformations due to device sensors.
  */
 function TouchPanner() {
-  window.addEventListener('touchstart', this.onTouchStart_.bind(this));
-  window.addEventListener('touchmove', this.onTouchMove_.bind(this));
-  window.addEventListener('touchend', this.onTouchEnd_.bind(this));
+    // Attach to mouse and keyboard events.
+    if (!window.renderParam) {
+        window.addEventListener('touchstart', this.onTouchStart_.bind(this));
+        window.addEventListener('touchmove', this.onTouchMove_.bind(this));
+        window.addEventListener('touchend', this.onTouchEnd_.bind(this));
+    } else {
+        document.querySelector('#' + renderParam.dom).addEventListener('touchstart', this.onTouchStart_.bind(this));
+        document.querySelector('#' + renderParam.dom).addEventListener('touchmove', this.onTouchMove_.bind(this));
+        document.querySelector('#' + renderParam.dom).addEventListener('touchend', this.onTouchEnd_.bind(this));
+    }
 
-  this.isTouching = false;
-  this.rotateStart = new MathUtil.Vector2();
-  this.rotateEnd = new MathUtil.Vector2();
-  this.rotateDelta = new MathUtil.Vector2();
+    this.isTouching = false;
+    this.rotateStart = new MathUtil.Vector2();
+    this.rotateEnd = new MathUtil.Vector2();
+    this.rotateDelta = new MathUtil.Vector2();
 
-  this.theta = 0;
-  this.orientation = new MathUtil.Quaternion();
+    this.theta = 0;
+    this.orientation = new MathUtil.Quaternion();
 }
 
-TouchPanner.prototype.getOrientation = function() {
-  this.orientation.setFromEulerXYZ(0, 0, this.theta);
-  return this.orientation;
+TouchPanner.prototype.getOrientation = function () {
+    this.orientation.setFromEulerXYZ(0, 0, this.theta);
+    return this.orientation;
 };
 
-TouchPanner.prototype.resetSensor = function() {
-  this.theta = 0;
+TouchPanner.prototype.resetSensor = function () {
+    this.theta = 0;
 };
 
-TouchPanner.prototype.onTouchStart_ = function(e) {
-  // Only respond if there is exactly one touch.
-  if (e.touches.length != 1) {
-    return;
-  }
-  this.rotateStart.set(e.touches[0].pageX, e.touches[0].pageY);
-  this.isTouching = true;
+TouchPanner.prototype.onTouchStart_ = function (e) {
+    // Only respond if there is exactly one touch.
+    if (e.touches.length != 1) {
+        return;
+    }
+    this.rotateStart.set(e.touches[0].pageX, e.touches[0].pageY);
+    this.isTouching = true;
 };
 
-TouchPanner.prototype.onTouchMove_ = function(e) {
-  if (!this.isTouching) {
-    return;
-  }
-  this.rotateEnd.set(e.touches[0].pageX, e.touches[0].pageY);
-  this.rotateDelta.subVectors(this.rotateEnd, this.rotateStart);
-  this.rotateStart.copy(this.rotateEnd);
+TouchPanner.prototype.onTouchMove_ = function (e) {
+    if (!this.isTouching) {
+        return;
+    }
+    this.rotateEnd.set(e.touches[0].pageX, e.touches[0].pageY);
+    this.rotateDelta.subVectors(this.rotateEnd, this.rotateStart);
+    this.rotateStart.copy(this.rotateEnd);
 
-  // On iOS, direction is inverted.
-  if (Util.isIOS()) {
-    this.rotateDelta.x *= -1;
-  }
+    // On iOS, direction is inverted.
+    if (Util.isIOS()) {
+        this.rotateDelta.x *= -1;
+    }
 
-  var element = document.body;
-  this.theta += 2 * Math.PI * this.rotateDelta.x / element.clientWidth * ROTATE_SPEED;
+    var element = document.body;
+    this.theta += 2 * Math.PI * this.rotateDelta.x / element.clientWidth * ROTATE_SPEED;
 };
 
-TouchPanner.prototype.onTouchEnd_ = function(e) {
-  this.isTouching = false;
+TouchPanner.prototype.onTouchEnd_ = function (e) {
+    this.isTouching = false;
 };
 
 module.exports = TouchPanner;
 
-},{"./math-util.js":12,"./util.js":20}],20:[function(_dereq_,module,exports){
+},{"./math-util.js":11,"./util.js":19}],19:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -5384,7 +5315,7 @@ Util.getDomainFromUrl = function(url) {
 
 module.exports = Util;
 
-},{"object-assign":25}],21:[function(_dereq_,module,exports){
+},{"object-assign":24}],20:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -5583,7 +5514,7 @@ ViewerSelector.prototype.createButton_ = function(label, onclick) {
 
 module.exports = ViewerSelector;
 
-},{"./device-info.js":6,"./util.js":20,"eventemitter3":24}],22:[function(_dereq_,module,exports){
+},{"./device-info.js":6,"./util.js":19,"eventemitter3":23}],21:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -5658,7 +5589,7 @@ function getWakeLock() {
 }
 
 module.exports = getWakeLock();
-},{"./util.js":20}],23:[function(_dereq_,module,exports){
+},{"./util.js":19}],22:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -5896,7 +5827,7 @@ function InstallWebVRSpecShim() {
 
 module.exports.WebVRPolyfill = WebVRPolyfill;
 
-},{"./base.js":1,"./cardboard-vr-display.js":4,"./display-wrappers.js":7,"./mouse-keyboard-vr-display.js":13,"./util.js":20}],24:[function(_dereq_,module,exports){
+},{"./base.js":1,"./cardboard-vr-display.js":4,"./display-wrappers.js":7,"./mouse-keyboard-vr-display.js":12,"./util.js":19}],23:[function(_dereq_,module,exports){
 'use strict';
 
 var has = Object.prototype.hasOwnProperty
@@ -6209,7 +6140,7 @@ if ('undefined' !== typeof module) {
   module.exports = EventEmitter;
 }
 
-},{}],25:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 /*
 object-assign
 (c) Sindre Sorhus
@@ -6301,5 +6232,87 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 	return to;
 };
 
-},{}]},{},[11])(11)
+},{}],25:[function(_dereq_,module,exports){
+/*
+ * Copyright 2015 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var Util = _dereq_('./util.js');
+var WebVRPolyfill = _dereq_('./webvr-polyfill.js').WebVRPolyfill;
+
+// Initialize a WebVRConfig just in case.
+window.WebVRConfig = Util.extend({
+  // Forces availability of VR mode, even for non-mobile devices.
+  FORCE_ENABLE_VR: false,
+
+  // Complementary filter coefficient. 0 for accelerometer, 1 for gyro.
+  K_FILTER: 0.98,
+
+  // How far into the future to predict during fast motion (in seconds).
+  PREDICTION_TIME_S: 0.040,
+
+  // Flag to enable touch panner. In case you have your own touch controls.
+  TOUCH_PANNER_DISABLED: true,
+
+  // Flag to disabled the UI in VR Mode.
+  CARDBOARD_UI_DISABLED: false, // Default: false
+
+  // Flag to disable the instructions to rotate your device.
+  ROTATE_INSTRUCTIONS_DISABLED: false, // Default: false.
+
+  // Enable yaw panning only, disabling roll and pitch. This can be useful
+  // for panoramas with nothing interesting above or below.
+  YAW_ONLY: false,
+
+  // To disable keyboard and mouse controls, if you want to use your own
+  // implementation.
+  MOUSE_KEYBOARD_CONTROLS_DISABLED: false,
+
+  // Prevent the polyfill from initializing immediately. Requires the app
+  // to call InitializeWebVRPolyfill() before it can be used.
+  DEFER_INITIALIZATION: false,
+
+  // Enable the deprecated version of the API (navigator.getVRDevices).
+  ENABLE_DEPRECATED_API: false,
+
+  // Scales the recommended buffer size reported by WebVR, which can improve
+  // performance.
+  // UPDATE(2016-05-03): Setting this to 0.5 by default since 1.0 does not
+  // perform well on many mobile devices.
+  BUFFER_SCALE: 0.5,
+
+  // Allow VRDisplay.submitFrame to change gl bindings, which is more
+  // efficient if the application code will re-bind its resources on the
+  // next frame anyway. This has been seen to cause rendering glitches with
+  // THREE.js.
+  // Dirty bindings include: gl.FRAMEBUFFER_BINDING, gl.CURRENT_PROGRAM,
+  // gl.ARRAY_BUFFER_BINDING, gl.ELEMENT_ARRAY_BUFFER_BINDING,
+  // and gl.TEXTURE_BINDING_2D for texture unit 0.
+  DIRTY_SUBMIT_FRAME_BINDINGS: false,
+
+  // When set to true, this will cause a polyfilled VRDisplay to always be
+  // appended to the list returned by navigator.getVRDisplays(), even if that
+  // list includes a native VRDisplay.
+  ALWAYS_APPEND_POLYFILL_DISPLAY: false
+}, window.WebVRConfig);
+
+if (!window.WebVRConfig.DEFER_INITIALIZATION) {
+  new WebVRPolyfill();
+} else {
+  window.InitializeWebVRPolyfill = function() {
+    new WebVRPolyfill();
+  }
+}
+
+},{"./util.js":19,"./webvr-polyfill.js":22}]},{},[25])(25)
 });

@@ -21,56 +21,63 @@ var ROTATE_SPEED = 0.5;
  * transformations due to device sensors.
  */
 function TouchPanner() {
-  window.addEventListener('touchstart', this.onTouchStart_.bind(this));
-  window.addEventListener('touchmove', this.onTouchMove_.bind(this));
-  window.addEventListener('touchend', this.onTouchEnd_.bind(this));
+    // Attach to mouse and keyboard events.
+    if (!window.renderParam) {
+        window.addEventListener('touchstart', this.onTouchStart_.bind(this));
+        window.addEventListener('touchmove', this.onTouchMove_.bind(this));
+        window.addEventListener('touchend', this.onTouchEnd_.bind(this));
+    } else {
+        document.querySelector('#' + renderParam.dom).addEventListener('touchstart', this.onTouchStart_.bind(this));
+        document.querySelector('#' + renderParam.dom).addEventListener('touchmove', this.onTouchMove_.bind(this));
+        document.querySelector('#' + renderParam.dom).addEventListener('touchend', this.onTouchEnd_.bind(this));
+    }
 
-  this.isTouching = false;
-  this.rotateStart = new MathUtil.Vector2();
-  this.rotateEnd = new MathUtil.Vector2();
-  this.rotateDelta = new MathUtil.Vector2();
+    this.isTouching = false;
+    this.rotateStart = new MathUtil.Vector2();
+    this.rotateEnd = new MathUtil.Vector2();
+    this.rotateDelta = new MathUtil.Vector2();
 
-  this.theta = 0;
-  this.orientation = new MathUtil.Quaternion();
+    this.theta = 0;
+    this.orientation = new MathUtil.Quaternion();
 }
 
-TouchPanner.prototype.getOrientation = function() {
-  this.orientation.setFromEulerXYZ(0, 0, this.theta);
-  return this.orientation;
+TouchPanner.prototype.getOrientation = function () {
+    this.orientation.setFromEulerXYZ(0, 0, this.theta);
+    return this.orientation;
 };
 
-TouchPanner.prototype.resetSensor = function() {
-  this.theta = 0;
+TouchPanner.prototype.resetSensor = function () {
+    this.theta = 0;
 };
 
-TouchPanner.prototype.onTouchStart_ = function(e) {
-  // Only respond if there is exactly one touch.
-  if (e.touches.length != 1) {
-    return;
-  }
-  this.rotateStart.set(e.touches[0].pageX, e.touches[0].pageY);
-  this.isTouching = true;
+TouchPanner.prototype.onTouchStart_ = function (e) {
+    // Only respond if there is exactly one touch.
+    if (e.touches.length != 1) {
+        return;
+    }
+    this.rotateStart.set(e.touches[0].pageX, e.touches[0].pageY);
+    this.isTouching = true;
 };
 
-TouchPanner.prototype.onTouchMove_ = function(e) {
-  if (!this.isTouching) {
-    return;
-  }
-  this.rotateEnd.set(e.touches[0].pageX, e.touches[0].pageY);
-  this.rotateDelta.subVectors(this.rotateEnd, this.rotateStart);
-  this.rotateStart.copy(this.rotateEnd);
+TouchPanner.prototype.onTouchMove_ = function (e) {
+    if (!this.isTouching) {
+        return;
+    }
+    this.rotateEnd.set(e.touches[0].pageX, e.touches[0].pageY);
+    this.rotateDelta.subVectors(this.rotateEnd, this.rotateStart);
+    this.rotateStart.copy(this.rotateEnd);
 
-  // On iOS, direction is inverted.
-  if (Util.isIOS()) {
-    this.rotateDelta.x *= -1;
-  }
+    // On iOS, direction is inverted.
+    if (Util.isIOS()) {
+        this.rotateDelta.x *= -1;
+    }
 
-  var element = document.body;
-  this.theta += 2 * Math.PI * this.rotateDelta.x / element.clientWidth * ROTATE_SPEED;
+    var element = document.body;
+    this.theta += 2 * Math.PI * this.rotateDelta.x / element.clientWidth * ROTATE_SPEED;
 };
 
-TouchPanner.prototype.onTouchEnd_ = function(e) {
-  this.isTouching = false;
+TouchPanner.prototype.onTouchEnd_ = function (e) {
+    this.isTouching = false;
 };
 
 module.exports = TouchPanner;
