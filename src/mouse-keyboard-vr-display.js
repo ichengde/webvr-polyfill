@@ -41,10 +41,10 @@ function MouseKeyboardVRDisplay() {
         window.addEventListener('mousedown', this.onMouseDown_.bind(this));
         window.addEventListener('mouseup', this.onMouseUp_.bind(this));
     } else {
-        document.querySelector('#' + renderParam.dom).addEventListener('keydown', this.onKeyDown_.bind(this));
-        document.querySelector('#' + renderParam.dom).addEventListener('mousemove', this.onMouseMove_.bind(this));
-        document.querySelector('#' + renderParam.dom).addEventListener('mousedown', this.onMouseDown_.bind(this));
-        document.querySelector('#' + renderParam.dom).addEventListener('mouseup', this.onMouseUp_.bind(this));
+        document.querySelector('#' + renderParam.parent).addEventListener('keydown', this.onKeyDown_.bind(this));
+        document.querySelector('#' + renderParam.parent).addEventListener('mousemove', this.onMouseMove_.bind(this));
+        document.querySelector('#' + renderParam.parent).addEventListener('mousedown', this.onMouseDown_.bind(this));
+        document.querySelector('#' + renderParam.parent).addEventListener('mouseup', this.onMouseUp_.bind(this));
     }
     // "Private" members.
     this.phi_ = 0;

@@ -27,9 +27,9 @@ function TouchPanner() {
         window.addEventListener('touchmove', this.onTouchMove_.bind(this));
         window.addEventListener('touchend', this.onTouchEnd_.bind(this));
     } else {
-        document.querySelector('#' + renderParam.dom).addEventListener('touchstart', this.onTouchStart_.bind(this));
-        document.querySelector('#' + renderParam.dom).addEventListener('touchmove', this.onTouchMove_.bind(this));
-        document.querySelector('#' + renderParam.dom).addEventListener('touchend', this.onTouchEnd_.bind(this));
+        document.querySelector('#' + renderParam.parent).addEventListener('touchstart', this.onTouchStart_.bind(this));
+        document.querySelector('#' + renderParam.parent).addEventListener('touchmove', this.onTouchMove_.bind(this));
+        document.querySelector('#' + renderParam.parent).addEventListener('touchend', this.onTouchEnd_.bind(this));
     }
 
     this.isTouching = false;
