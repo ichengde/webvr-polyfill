@@ -61,7 +61,7 @@ function FusionPoseSensor() {
   this.isFirefoxAndroid = Util.isFirefoxAndroid();
   this.isIOS = Util.isIOS();
   this.deviceMotion = true;
-  this.touchMotion = true;
+  
   this.orientationOut_ = new Float32Array(4);
 }
 
@@ -71,7 +71,7 @@ FusionPoseSensor.prototype.getPosition = function() {
 };
 FusionPoseSensor.prototype.setDeviceMotion = function(onOrOff) {
   this.deviceMotion = onOrOff;
-  this.touchMotion = onOrOff;
+  this.touchPanner.touchMotion = onOrOff;
 };
 FusionPoseSensor.prototype.getOrientation = function() {
   // Convert from filter space to the the same system used by the
@@ -85,7 +85,7 @@ FusionPoseSensor.prototype.getOrientation = function() {
   var out = new MathUtil.Quaternion();
   out.copy(this.filterToWorldQ);
   out.multiply(this.resetQ);
-  if (!WebVRConfig.TOUCH_PANNER_DISABLED && this.touchMotion === true) {
+  if (!WebVRConfig.TOUCH_PANNER_DISABLED) {
     out.multiply(this.touchPanner.getOrientation());
   }
   out.multiply(this.predictedQ);

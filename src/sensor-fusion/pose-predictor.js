@@ -38,9 +38,6 @@ function PosePredictor(predictionTimeS) {
   this.outQ = new MathUtil.Quaternion();
 }
 
-PosePredictor.prototype.setYaw = function(yaw) {
-  this.previousQ = new MathUtil.Quaternion().setFromEulerXYZ(0, 0, yaw);
-}
 PosePredictor.prototype.getPrediction = function(currentQ, gyro, timestampS) {
   if (!this.previousTimestampS) {
     this.previousQ.copy(currentQ);
