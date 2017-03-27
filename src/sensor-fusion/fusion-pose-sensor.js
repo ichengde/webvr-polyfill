@@ -60,7 +60,8 @@ function FusionPoseSensor() {
 
   this.isFirefoxAndroid = Util.isFirefoxAndroid();
   this.isIOS = Util.isIOS();
-
+  this.deviceMotion = true;
+  this.touchMotion = true;
   this.orientationOut_ = new Float32Array(4);
 }
 
@@ -68,7 +69,10 @@ FusionPoseSensor.prototype.getPosition = function() {
   // This PoseSensor doesn't support position
   return null;
 };
-
+FusionPoseSensor.prototype.setDeviceMotion = function(onOrOff) {
+  this.deviceMotion = onOrOff;
+  this.touchMotion = onOrOff;
+};
 FusionPoseSensor.prototype.getOrientation = function() {
   // Convert from filter space to the the same system used by the
   // deviceorientation event.
@@ -81,7 +85,7 @@ FusionPoseSensor.prototype.getOrientation = function() {
   var out = new MathUtil.Quaternion();
   out.copy(this.filterToWorldQ);
   out.multiply(this.resetQ);
-  if (!WebVRConfig.TOUCH_PANNER_DISABLED) {
+  if (!WebVRConfig.TOUCH_PANNER_DISABLED && this.touchMotion === true) {
     out.multiply(this.touchPanner.getOrientation());
   }
   out.multiply(this.predictedQ);
@@ -124,7 +128,9 @@ FusionPoseSensor.prototype.resetPose = function() {
 };
 
 FusionPoseSensor.prototype.onDeviceMotion_ = function(deviceMotion) {
-  this.updateDeviceMotion_(deviceMotion);
+  if (this.deviceMotion === true) {
+    this.updateDeviceMotion_(deviceMotion);
+  }
 };
 
 FusionPoseSensor.prototype.updateDeviceMotion_ = function(deviceMotion) {
