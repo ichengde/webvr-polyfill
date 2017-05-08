@@ -5354,10 +5354,10 @@ TouchPanner.prototype.onTouchStart_ = function (e) {
 };
 
 TouchPanner.prototype.onTouchMove_ = function (e) {
+    e.preventDefault();
     if (!this.isTouching) {
         return;
     }
-    e.preventdefault();
     this.rotateEnd.set(e.touches[0].pageX, e.touches[0].pageY);
     this.rotateDelta.subVectors(this.rotateEnd, this.rotateStart);
     this.rotateStart.copy(this.rotateEnd);
