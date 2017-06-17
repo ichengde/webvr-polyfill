@@ -24,6 +24,7 @@ var HMDVRDevice = require('./base.js').HMDVRDevice;
 var PositionSensorVRDevice = require('./base.js').PositionSensorVRDevice;
 var VRDisplayHMDDevice = require('./display-wrappers.js').VRDisplayHMDDevice;
 var VRDisplayPositionSensorDevice = require('./display-wrappers.js').VRDisplayPositionSensorDevice;
+var version = require('../package.json').version;
 
 function WebVRPolyfill() {
   this.displays = [];
@@ -37,7 +38,7 @@ function WebVRPolyfill() {
 
   if (!this.nativeLegacyWebVRAvailable) {
     this.enablePolyfill();
-    if (WebVRConfig.ENABLE_DEPRECATED_API) {
+    if (window.WebVRConfig.ENABLE_DEPRECATED_API) {
       this.enableDeprecatedPolyfill();
     }
   }
@@ -54,6 +55,11 @@ WebVRPolyfill.prototype.isDeprecatedWebVRAvailable = function() {
   return ('getVRDevices' in navigator) || ('mozGetVRDevices' in navigator);
 };
 
+WebVRPolyfill.prototype.connectDisplay = function(vrDisplay) {
+  vrDisplay.fireVRDisplayConnect_();
+  this.displays.push(vrDisplay);
+};
+
 WebVRPolyfill.prototype.populateDevices = function() {
   if (this.devicesPopulated) {
     return;
@@ -65,29 +71,30 @@ WebVRPolyfill.prototype.populateDevices = function() {
   // Add a Cardboard VRDisplay on compatible mobile devices
   if (this.isCardboardCompatible()) {
     vrDisplay = new CardboardVRDisplay();
-    this.displays.push(vrDisplay);
+
+    this.connectDisplay(vrDisplay);
 
     // For backwards compatibility
-    if (WebVRConfig.ENABLE_DEPRECATED_API) {
+    if (window.WebVRConfig.ENABLE_DEPRECATED_API) {
       this.devices.push(new VRDisplayHMDDevice(vrDisplay));
       this.devices.push(new VRDisplayPositionSensorDevice(vrDisplay));
     }
   }
 
   // Add a Mouse and Keyboard driven VRDisplay for desktops/laptops
-  if (!this.isMobile() && !WebVRConfig.MOUSE_KEYBOARD_CONTROLS_DISABLED) {
+  if (!this.isMobile() && !window.WebVRConfig.MOUSE_KEYBOARD_CONTROLS_DISABLED) {
     vrDisplay = new MouseKeyboardVRDisplay();
-    this.displays.push(vrDisplay);
+    this.connectDisplay(vrDisplay);
 
     // For backwards compatibility
-    if (WebVRConfig.ENABLE_DEPRECATED_API) {
+    if (window.WebVRConfig.ENABLE_DEPRECATED_API) {
       this.devices.push(new VRDisplayHMDDevice(vrDisplay));
       this.devices.push(new VRDisplayPositionSensorDevice(vrDisplay));
     }
   }
 
   // Uncomment to add positional tracking via webcam.
-  //if (!this.isMobile() && WebVRConfig.ENABLE_DEPRECATED_API) {
+  //if (!this.isMobile() && window.WebVRConfig.ENABLE_DEPRECATED_API) {
   //  positionDevice = new WebcamPositionSensorVRDevice();
   //  this.devices.push(positionDevice);
   //}
@@ -99,19 +106,42 @@ WebVRPolyfill.prototype.enablePolyfill = function() {
   // Provide navigator.getVRDisplays.
   navigator.getVRDisplays = this.getVRDisplays.bind(this);
 
-  // Provide the VRDisplay object.
+  // Polyfill native VRDisplay.getFrameData
+  if (this.nativeWebVRAvailable && window.VRFrameData) {
+    var nativeFrameData = new window.VRFrameData();
+    var nativeGetFrameData = window.VRDisplay.prototype.getFrameData;
+    window.VRFrameData = VRFrameData;
+
+    window.VRDisplay.prototype.getFrameData = function(frameData) {
+      /*
+      Copy frame data from the native object into the polyfilled object.
+      */
+
+      nativeGetFrameData.call(this, nativeFrameData);
+      frameData.pose = nativeFrameData.pose;
+      Util.copyArray(nativeFrameData.leftProjectionMatrix, frameData.leftProjectionMatrix);
+      Util.copyArray(nativeFrameData.rightProjectionMatrix, frameData.rightProjectionMatrix);
+      Util.copyArray(nativeFrameData.leftViewMatrix, frameData.leftViewMatrix);
+      Util.copyArray(nativeFrameData.rightViewMatrix, frameData.rightViewMatrix);
+      //todo: copy
+    };
+  }
+
+  // Provide the `VRDisplay` object.
   window.VRDisplay = VRDisplay;
 
-  // Provide navigator.vrEnabled.
-  var self = this;
-  Object.defineProperty(navigator, 'vrEnabled', {
-    get: function () {
-      return self.isCardboardCompatible() &&
-          (self.isFullScreenAvailable() || Util.isIOS());
-    }
-  });
+  // Provide the `navigator.vrEnabled` property.
+  if (navigator && !navigator.vrEnabled) {
+    var self = this;
+    Object.defineProperty(navigator, 'vrEnabled', {
+      get: function () {
+        return self.isCardboardCompatible() &&
+            (self.isFullScreenAvailable() || Util.isIOS());
+      }
+    });
+  }
 
-  if (!'VRFrameData' in window) {
+  if (!('VRFrameData' in window)) {
     // Provide the VRFrameData object.
     window.VRFrameData = VRFrameData;
   }
@@ -130,23 +160,32 @@ WebVRPolyfill.prototype.getVRDisplays = function() {
   this.populateDevices();
   var polyfillDisplays = this.displays;
 
-  if (this.nativeWebVRAvailable) {
-    return this.nativeGetVRDisplaysFunc.call(navigator).then(function(nativeDisplays) {
-      if (WebVRConfig.ALWAYS_APPEND_POLYFILL_DISPLAY) {
-        return nativeDisplays.concat(polyfillDisplays);
-      } else {
-        return nativeDisplays.length > 0 ? nativeDisplays : polyfillDisplays;
-      }
-    });
-  } else {
-    return new Promise(function(resolve, reject) {
-      try {
-        resolve(polyfillDisplays);
-      } catch (e) {
-        reject(e);
-      }
-    });
+  if (!this.nativeWebVRAvailable) {
+    return Promise.resolve(polyfillDisplays);
   }
+
+  // Set up a race condition if this browser has a bug where
+  // `navigator.getVRDisplays()` never resolves.
+  var timeoutId;
+  var vrDisplaysNative = this.nativeGetVRDisplaysFunc.call(navigator);
+  var timeoutPromise = new Promise(function(resolve) {
+    timeoutId = setTimeout(function() {
+      console.warn('Native WebVR implementation detected, but `getVRDisplays()` failed to resolve. Falling back to polyfill.');
+      resolve([]);
+    }, window.WebVRConfig.GET_VR_DISPLAYS_TIMEOUT);
+  });
+
+  return Util.race([
+    vrDisplaysNative,
+    timeoutPromise
+  ]).then(function(nativeDisplays) {
+    clearTimeout(timeoutId);
+    if (window.WebVRConfig.ALWAYS_APPEND_POLYFILL_DISPLAY) {
+      return nativeDisplays.concat(polyfillDisplays);
+    } else {
+      return nativeDisplays.length > 0 ? nativeDisplays : polyfillDisplays;
+    }
+  });
 };
 
 WebVRPolyfill.prototype.getVRDevices = function() {
@@ -201,7 +240,7 @@ WebVRPolyfill.prototype.isMobile = function() {
 WebVRPolyfill.prototype.isCardboardCompatible = function() {
   // For now, support all iOS and Android devices.
   // Also enable the WebVRConfig.FORCE_VR flag for debugging.
-  return this.isMobile() || WebVRConfig.FORCE_ENABLE_VR;
+  return this.isMobile() || window.WebVRConfig.FORCE_ENABLE_VR;
 };
 
 WebVRPolyfill.prototype.isFullScreenAvailable = function() {
@@ -232,5 +271,8 @@ function InstallWebVRSpecShim() {
     }
   }
 };
+
+WebVRPolyfill.InstallWebVRSpecShim = InstallWebVRSpecShim;
+WebVRPolyfill.version = version;
 
 module.exports.WebVRPolyfill = WebVRPolyfill;

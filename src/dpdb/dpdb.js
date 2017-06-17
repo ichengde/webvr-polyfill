@@ -15,11 +15,12 @@
 
 // Offline cache of the DPDB, to be used until we load the online one (and
 // as a fallback in case we can't load the online one).
-var DPDB_CACHE = require('./dpdb-cache.js');
+var DPDB_CACHE = require('./dpdb.json');
 var Util = require('../util.js');
 
 // Online DPDB URL.
-var ONLINE_DPDB_URL = 'https://storage.googleapis.com/cardboard-dpdb/dpdb.json';
+var ONLINE_DPDB_URL =
+  'https://dpdb.webvr.rocks/dpdb.json';
 
 /**
  * Calculates device parameters based on the DPDB (Device Parameter Database).

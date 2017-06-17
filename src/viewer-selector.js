@@ -14,7 +14,6 @@
  */
 
 var DeviceInfo = require('./device-info.js');
-var EventEmitter3 = require('eventemitter3');
 var Util = require('./util.js');
 
 var DEFAULT_VIEWER = 'CardboardV1';
@@ -27,17 +26,22 @@ var CLASS_NAME = 'webvr-polyfill-viewer-selector';
  * saving the currently selected index in localStorage.
  */
 function ViewerSelector() {
-  // Try to load the selected key from local storage. If none exists, use the
-  // default key.
+  // Try to load the selected key from local storage.
   try {
-    this.selectedKey = localStorage.getItem(VIEWER_KEY) || DEFAULT_VIEWER;
+    this.selectedKey = localStorage.getItem(VIEWER_KEY);
   } catch (error) {
     console.error('Failed to load viewer profile: %s', error);
   }
+
+  //If none exists, or if localstorage is unavailable, use the default key.
+  if (!this.selectedKey) {
+    this.selectedKey = DEFAULT_VIEWER;
+  }
+
   this.dialog = this.createDialog_(DeviceInfo.Viewers);
   this.root = null;
+  this.onChangeCallbacks_ = [];
 }
-ViewerSelector.prototype = new EventEmitter3();
 
 ViewerSelector.prototype.show = function(root) {
   this.root = root;
@@ -71,6 +75,16 @@ ViewerSelector.prototype.getSelectedKey_ = function() {
   return null;
 };
 
+ViewerSelector.prototype.onChange = function(cb) {
+  this.onChangeCallbacks_.push(cb);
+};
+
+ViewerSelector.prototype.fireOnChange_ = function(viewer) {
+  for (var i = 0; i < this.onChangeCallbacks_.length; i++) {
+    this.onChangeCallbacks_[i](viewer);
+  }
+};
+
 ViewerSelector.prototype.onSave_ = function() {
   this.selectedKey = this.getSelectedKey_();
   if (!this.selectedKey || !DeviceInfo.Viewers[this.selectedKey]) {
@@ -78,7 +92,7 @@ ViewerSelector.prototype.onSave_ = function() {
     return;
   }
 
-  this.emit('change', DeviceInfo.Viewers[this.selectedKey]);
+  this.fireOnChange_(DeviceInfo.Viewers[this.selectedKey]);
 
   // Attempt to save the viewer profile, but fails in private mode.
   try {

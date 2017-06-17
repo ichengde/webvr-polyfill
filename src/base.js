@@ -219,12 +219,8 @@ VRDisplay.prototype.requestPresent = function(layers) {
       }
 
       for (var i = 0; i < 4; i++) {
-        if (layer.leftBounds[i] !== leftBounds[i]) {
-          layer.leftBounds[i] = leftBounds[i];
-        }
-        if (layer.rightBounds[i] !== rightBounds[i]) {
-          layer.rightBounds[i] = rightBounds[i];
-        }
+        layer.leftBounds[i] = leftBounds[i];
+        layer.rightBounds[i] = rightBounds[i];
       }
 
       resolve();
@@ -245,7 +241,7 @@ VRDisplay.prototype.requestPresent = function(layers) {
       var fullscreenElement = self.wrapForFullscreen(self.layer_.source);
       Util.debug('Get fullscreenElement');
 
-      function onFullscreenChange() {
+      var onFullscreenChange = function() {
         var actualFullscreenElement = Util.getFullscreenElement();
 
         self.isPresenting = (fullscreenElement === actualFullscreenElement);
@@ -270,7 +266,7 @@ VRDisplay.prototype.requestPresent = function(layers) {
         }
         self.fireVRDisplayPresentChange_();
       }
-      function onFullscreenError() {
+      var onFullscreenError = function() {
         if (!self.waitingForPresent_) {
           return;
         }
@@ -290,6 +286,10 @@ VRDisplay.prototype.requestPresent = function(layers) {
       Util.debug('addEvent:onFullscreenChange success');
 
       if (Util.isWechat() || Util.isTBS()) {
+      // if (Util.requestFullscreen(fullscreenElement)) {
+        self.wakelock_.request();
+        self.waitingForPresent_ = true;
+      } else if (Util.isIOS() || Util.isWebViewAndroid()) {
         // *sigh* Just fake it.
         self.wakelock_.request();
         self.isPresenting = true;
@@ -336,6 +336,13 @@ VRDisplay.prototype.exitPresent = function() {
         self.fireVRDisplayPresentChange_();
       }
 
+      if (Util.isWebViewAndroid()) {
+        self.removeFullscreenWrapper();
+        self.removeFullscreenListeners_();
+        self.endPresent_();
+        self.fireVRDisplayPresentChange_();
+      }
+
       resolve();
     } else {
       reject(new Error('Was not presenting to VRDisplay.'));
@@ -351,7 +358,18 @@ VRDisplay.prototype.getLayers = function() {
 };
 
 VRDisplay.prototype.fireVRDisplayPresentChange_ = function() {
+  // Important: unfortunately we cannot have full spec compliance here.
+  // CustomEvent custom fields all go under e.detail (so the VRDisplay ends up
+  // being e.detail.display, instead of e.display as per WebVR spec).
   var event = new CustomEvent('vrdisplaypresentchange', {detail: {display: this}});
+  window.dispatchEvent(event);
+};
+
+VRDisplay.prototype.fireVRDisplayConnect_ = function() {
+  // Important: unfortunately we cannot have full spec compliance here.
+  // CustomEvent custom fields all go under e.detail (so the VRDisplay ends up
+  // being e.detail.display, instead of e.display as per WebVR spec).
+  var event = new CustomEvent('vrdisplayconnect', {detail: {display: this}});
   window.dispatchEvent(event);
 };
 

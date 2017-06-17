@@ -38,7 +38,7 @@ function CardboardVRDisplay() {
   this.capabilities.canPresent = true;
 
   // "Private" members.
-  this.bufferScale_ = WebVRConfig.BUFFER_SCALE;
+  this.bufferScale_ = window.WebVRConfig.BUFFER_SCALE;
   this.poseSensor_ = new FusionPoseSensor();
   this.distorter_ = null;
   this.cardboardUI_ = null;
@@ -47,12 +47,12 @@ function CardboardVRDisplay() {
   this.deviceInfo_ = new DeviceInfo(this.dpdb_.getDeviceParams());
 
   this.viewerSelector_ = new ViewerSelector();
-  this.viewerSelector_.on('change', this.onViewerChanged_.bind(this));
+  this.viewerSelector_.onChange(this.onViewerChanged_.bind(this));
 
   // Set the correct initial viewer.
   this.deviceInfo_.setViewer(this.viewerSelector_.getCurrentViewer());
 
-  if (!WebVRConfig.ROTATE_INSTRUCTIONS_DISABLED) {
+  if (!window.WebVRConfig.ROTATE_INSTRUCTIONS_DISABLED) {
     this.rotateInstructions_ = new RotateInstructions();
   }
 
@@ -131,7 +131,7 @@ CardboardVRDisplay.prototype.beginPresent_ = function() {
 
   // Provides a way to opt out of distortion
   if (this.layer_.predistorted) {
-    if (!WebVRConfig.CARDBOARD_UI_DISABLED) {
+    if (!window.WebVRConfig.CARDBOARD_UI_DISABLED) {
       gl.canvas.width = Util.getScreenWidth() * this.bufferScale_;
       gl.canvas.height = Util.getScreenHeight() * this.bufferScale_;
       this.cardboardUI_ = new CardboardUI(gl);
@@ -201,6 +201,7 @@ CardboardVRDisplay.prototype.endPresent_ = function() {
 
 CardboardVRDisplay.prototype.submitFrame = function(pose) {
   if (this.distorter_) {
+    this.updateBounds_();
     this.distorter_.submitFrame();
   } else if (this.cardboardUI_ && this.layer_) {
     // Hack for predistorted: true.
@@ -236,7 +237,8 @@ CardboardVRDisplay.prototype.onResize_ = function(e) {
     // hide the URL bar unless content is bigger than the screen.
     // This will not be visible as long as the container element (e.g. body)
     // is set to 'overflow: hidden'.
-    
+    // Additionally, 'box-sizing: content-box' ensures renderWidth = width + padding.
+    // This is required when 'box-sizing: border-box' is used elsewhere in the page.
     var cssProperties = [
       'position: absolute',
       'top: 0',
@@ -246,6 +248,7 @@ CardboardVRDisplay.prototype.onResize_ = function(e) {
       'border: 0',
       'margin: 0',
       'padding: 0 10px 10px 0',
+      'box-sizing: content-box',
     ];
     gl.canvas.setAttribute('style', cssProperties.join('; ') + ';');
 
